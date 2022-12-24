@@ -23,6 +23,15 @@ export const XummAuthService = {
     },
     async makeXummSdk () {
         return new Xumm(xummConfig.AppId, xummConfig.AppSecret);   
+    },
+    async makeXappXummSdk (xAppToken) {
+        return new Xumm(xummConfig.AppId, xAppToken);   
+    },
+    async makeXummSdkJWT (jwt) {
+        Axios.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
+        return new Xumm(jwt);   
+    },
+    async setBearer (token) {
+        Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
-
 };
