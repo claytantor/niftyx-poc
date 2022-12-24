@@ -31,7 +31,7 @@ behaves both like a webapp
 that can be logged into using
 OAuth2 and your xumm wallet
 as well as a xApp that can
-use the xUsetToken 
+use the xAppToken 
 end note
 
 xumm_browser->oauth2
