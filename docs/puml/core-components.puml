@@ -1,0 +1,50 @@
+@startuml
+
+package "Browser" {
+    [niftyx.net JS] as browser
+    [Xumm JS SDK] as xumm_browser
+    [Xumm OAuth2] as oauth2
+}
+
+
+package "Static Files" {
+    [Parcel Packaged ReactJS] as webapp
+}
+
+package "API" {
+    [Uvivorn] as api
+    [Xumm Python SDK] as xumm_py
+    [XRPL Python SDK] as xrpl_py
+}
+
+package "XRP Blockchain" {
+    [Account] as account
+}
+
+package "Wallet" {
+    [Xumm] as wallet
+}
+
+browser->xumm_browser
+note top of browser
+behaves both like a webapp
+that can be logged into using
+OAuth2 and your xumm wallet
+as well as a xApp that can
+use the xUsetToken 
+end note
+
+xumm_browser->oauth2
+browser-->api: API calls with JWT
+browser-->webapp: Static files
+api-->xumm_py
+api->xrpl_py
+xumm_py-->account
+xrpl_py-->account
+
+wallet-->account
+
+oauth2--wallet: OAuth2 via\nxumm PkCE
+
+
+@enduml

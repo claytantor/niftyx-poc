@@ -147,72 +147,6 @@ async def post_payment(
 
     return JSONResponse(status_code=HTTPStatus.OK, content=xumm_payload.to_dict())
 
-# @router.get("/payload/generate/{payload_uuidv4}")
-# @verify_xumm_jwt_get
-# async def post_generate(
-#     payload_uuidv4: str,
-#     authorization: str,
-#     request: Request):
-#     logger.info(f"=== create NFT payload id: {payload_uuidv4}")
-#     jwt_token = authorization.split('Bearer ')[1]
-#     jwt_body = get_token_body(jwt_token)
-#     logger.info(f"=== create NFT jwt_body {jwt_body}")
-
-#     # lets use the xumm sdk to find the payload 
-#     # and check if it was signed and owned by the JWT user
-#     payload = xumm_sdk.payload.get(payload_uuidv4)
-#     logger.info(f"=== payload {json.dumps(payload.to_dict())}")
-
-#     if jwt_body['sub'] != payload.to_dict()['payload']['request_json']['Account']:
-#         return JSONResponse(status_code=HTTPStatus.UNAUTHORIZED, content={"error": "unauthorized"})
-
-#     # check if we have already processed this payload eventually
-#     # we will need to use a durable store like redis or dynamodb
-#     logger.info(f"=== cache for {payload_uuidv4} {cache.get(payload_uuidv4)}")
-#     if f"{cache.get(payload_uuidv4)}" != "None":
-#         count = int(cache.get(payload_uuidv4))
-#         logger.info(f"=== count {count} for {payload_uuidv4}")
-#         if count and count > 3:
-#             return JSONResponse(status_code=HTTPStatus.TOO_MANY_REQUESTS, content={"error": "too many requests"})
-#         else:
-#             cache[payload_uuidv4] = count + 1
-#             logger.info(f"=== count found for {payload_uuidv4} incrementing to {cache.get(payload_uuidv4)}")
-#     else:
-#         logger.info(f"=== count not found for {payload_uuidv4} setting to 0")
-#         cache[payload_uuidv4] = 0
-
-#     # get the prompt from the payload
-#     prompt = json.loads(payload.to_dict()['custom_meta']['blob'])['prompt']
-#     logger.info(f"=== prompt {prompt}")
-
-#     if payload.meta.signed:
-#         logger.info(f"=== payload is signed")
-
-#         try:
-#             prompt_info = {
-#                 "prompt": prompt,
-#                 "num_inference_steps": 50,
-#                 "guidance_scale": 9,
-#                 "height": 512,
-#                 "width": 512,
-#                 "seed": random.randrange(32768)
-#             }
-#             model = StableDiffusionModel(prompt_info)
-#             nft_image = await render_image(model)
-
-
-#             # lets send the image to s3
-#             put_image_to_s3(nft_image, bucket=config['AWS_BUCKET_NAME'], 
-#                 filename=f"{config['AWS_UPLOADED_IMAGES_PATH']}/{payload_uuidv4}.png")
-
-#             return serve_pil_image(nft_image)
-#         except Exception as e:
-#             logger.error(f"=== error {e}")
-#             return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "error generating image"})
-
-#     return JSONResponse(status_code=HTTPStatus.NOT_ACCEPTABLE, content={"message": "payload has not been signed"})
-
-
 @router.post("/payload/generate")
 @verify_xumm_jwt
 async def post_generate(
@@ -335,18 +269,12 @@ async def post_mint_nft(
 
         return JSONResponse(status_code=HTTPStatus.OK, content=xumm_payload.to_dict())
 
-
-
-
     else:
         return JSONResponse(status_code=HTTPStatus.NOT_ACCEPTABLE, content={"message": "payload has not been signed"})
 
 
-    
-
 
 # ============== functions ==============
-
 def serve_pil_image(pil_img, type='PNG', mimetype='image/png'):
     img_io = io.BytesIO()
     pil_img.save(img_io, type, quality=70)
