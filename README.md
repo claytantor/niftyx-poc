@@ -43,17 +43,101 @@ So essentially needs to be able to handle the following scenarios:
 
 This means that state management needs to be aware of which mode the app is running in and handle the different scenarios.
 
-The code to manage the state is in two places:
+The code to manage the state is in these places:
 
-[App.js](webapp/src/Header.js#L1)
+[App.js Management of App Type State](webapp/src/Header.js#L1)
 
 ```javascript
 ```
 
 
+[XummAuthService.js](webapp/src/services/XummAuthService.js#L1)
+
+* getXummSDK - returns the xumm SDK based by checking at local storage, usually used for the Browser mode. If no token is found, it will return a null, telling the app to login.
+* getXummSDKJWT - returns the xumm SDKJWT and sets Axios to use that for authorization to the backend.
+* setBearer (token) - sets the token in Axios for authorization to the backend.
+
+
 ### Managing Transactions
+When a tx payload is created by the xumm SDK it generates a UUID that is used to manage the transaction lifecycle.
 
+```json
 
+{
+	"uuid": "3f01e760-4c37-9b8b-e5f3e6a34417",
+	"next": {
+		"always": "https://xumm.app/sign/3f01e760-2130-4c37-e5f3e6a34417"
+	},
+	"refs": {
+		"qr_png": "https://xumm.app/sign/3f01e760-2130-4c37-e5f3e6a34417_q.png",
+		"qr_matrix": "https://xumm.app/sign/3f01e760-2130-4c37-e5f3e6a34417_q.json",
+		"qr_uri_quality_opts": ["m", "q", "h"],
+		"websocket_status": "wss://xumm.app/sign/3f01e760-2130-4c37-e5f3e6a34417"
+	},
+	"pushed": false
+}
+```
+
+There are two ways to then sign transactions by the xumm app:
+
+* Browser - the backend creates the payload and displays a QR code the user can scan using xumm to sign.
+* xApp - the xumm app uses the `xumm.xapp.openSignRequest({ uuid: '...' })` method to open the transaction in the xumm app.
+
+Then client can then use the websocket to monitor the status of the transaction.
+
+```javascript
+PayloadService.getPayment(formState.prompt).then((res) => {  
+    console.log("payment response", res.data);
+    setStage(1);
+    setPayment(res.data);
+    setModalTitle('Use xumm wallet to sign the payment transaction');
+
+    const client = new W3CWebSocket(res.data.refs.websocket_status);
+
+    client.onopen = () => {
+        console.log('WebSocket Client Connected');
+    };
+
+    client.onclose = () => {
+        console.log('WebSocket Client Closed');
+    };
+
+    client.onmessage = (message) => {
+        const dataFromServer = JSON.parse(message.data);
+
+        let keys = Object.keys(dataFromServer);
+        if (
+            keys.includes('payload_uuidv4') && 
+            keys.includes('signed') && 
+            dataFromServer.signed === true
+        ){
+            setStage(-1);
+            setModalTitle(`Payment signed, generating image (${remaining+1} remaining)`);
+            PayloadService.postGenerate(dataFromServer.payload_uuidv4).then((res) => {
+            console.log(res.data);
+            setGenerateURL(res.data.img_src);
+            setDataFromServer(dataFromServer);
+            client.close();
+            setStage(2);
+            setModalTitle(`Select this image or generate another one (${remaining} remaining)`);
+            }).catch((err) => {
+            console.log(err);
+            setError(err);
+            });
+        };      
+        setWsclient(client);
+    }
+
+    if (xumm && isXApp) {
+        xumm.xapp.openSignRequest({ uuid: res.data.uuid });
+    } 
+
+}).catch((err) => {
+    console.log(err);
+    setError(err);
+});
+
+```
 
 
 ## Server Side JWT Backend
