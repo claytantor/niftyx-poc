@@ -1,7 +1,4 @@
 #!/bin/bash
-# export API_TIMESTAMP=$(date +%s)
-# export API_GIT_BRANCH=${CIRCLE_BRANCH:-$(git branch | grep \* | cut -d ' ' -f2)}
-# export API_GIT_SHA=$(git rev-parse --verify HEAD)
-
+# Usage: runapi.sh <env>
 APP_CONFIG=env/$1/api.env python -m api
 
