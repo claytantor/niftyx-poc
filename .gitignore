@@ -6,8 +6,6 @@ env/
 env/*.env
 .python-version
 webapp/environment/deployment.json
-out/
-out/*
 webapp/environment/deployment.json
 webapp/src/deployment.json
 .python-version
