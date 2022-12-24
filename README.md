@@ -6,6 +6,17 @@ A proof of concept for a xumm app demonstrating the concept of "Hybrid xApps" wh
 * Browser OAuth2 - xApps can also be authenticated by the user via a browser based OAuth2 flow. This is the most common way to authenticate a web app.
 * Server Side JWT Backend - Both modes produce a JWT, this JWT can be used to protect backend calls.
 
+## Architecture
+
+The project includes all implementations required to run a xumm app, a browser based OAuth2 flow and a server side JWT backend. The project is a simple FastAPI app that can be run locally or deployed to a server. The app is a simple stub that can be used to build any new xapp, as a ReactJS app that can be built and deployed to a server or as a static site.
+
+![out/docs/puml/core-components/core-components.png](out/docs/puml/core-components/core-components.png)
+
+## xApp
+
+## Browser OAuth2
+
+## Server Side JWT Backend
 
 ## Setup
 

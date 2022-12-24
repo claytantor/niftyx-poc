@@ -7,7 +7,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "parcel --host 0.0.0.0 -p 3010 src/index.html --no-cache",
-
     "serve-local": "bash ./scripts/create-deployment-json.sh local && cp ./environment/deployment.json ./src/. && parcel build && parcel --host 0.0.0.0 -p 3010 src/index.html --no-cache",
     "deploy-dev": "cp src/assets/favicon-32x32.png dist/favicon.ico && bash ./scripts/create-deployment-json.sh dev && cp ./environment/deployment.json ./src/. && npm run build && bash ./scripts/deploy.sh dev",
     "deploy-prd": "cp src/assets/favicon-32x32.png dist/favicon.ico && bash ./scripts/create-deployment-json.sh prd && cp ./environment/deployment.json ./src/. && npm run build && bash ./scripts/deploy.sh prd",
@@ -49,6 +48,7 @@
     "react-icons": "^4.7.1",
     "react-router-dom": "^6.5.0",
     "tailwindcss": "^3.2.4",
+    "uuid": "^9.0.0",
     "xrpl": "^2.7.0-beta.0",
     "xumm": "github:XRPL-Labs/Xumm-Universal-SDK",
     "xumm-js-pkce": "^1.0.0",
