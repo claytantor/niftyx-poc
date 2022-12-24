@@ -114,15 +114,15 @@ PayloadService.getPayment(formState.prompt).then((res) => {
             setStage(-1);
             setModalTitle(`Payment signed, generating image (${remaining+1} remaining)`);
             PayloadService.postGenerate(dataFromServer.payload_uuidv4).then((res) => {
-            console.log(res.data);
-            setGenerateURL(res.data.img_src);
-            setDataFromServer(dataFromServer);
-            client.close();
-            setStage(2);
-            setModalTitle(`Select this image or generate another one (${remaining} remaining)`);
+                console.log(res.data);
+                setGenerateURL(res.data.img_src);
+                setDataFromServer(dataFromServer);
+                client.close();
+                setStage(2);
+                setModalTitle(`Select this image or generate another one (${remaining} remaining)`);
             }).catch((err) => {
-            console.log(err);
-            setError(err);
+                console.log(err);
+                setError(err);
             });
         };      
         setWsclient(client);
