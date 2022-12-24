@@ -1,24 +1,33 @@
 import React, {useEffect, useState} from "react"
+import Axios from 'axios';
 
 import {FaGithubAlt} from "react-icons/fa"
 import {IoIosPaper} from "react-icons/io"
 import {TbCertificate} from "react-icons/tb"
 import {BiSupport} from "react-icons/bi"
 
+import { apiConfig } from "../env";
 
 const whitepaperUrl = "https://niftyx.io/whitepaper.pdf";
 
 const Footer = () => {
 
     let [apiInfo, setApiInfo] = useState();
-    let [count, setCount] = useState(0);
     let [baseUrl, setBaseUrl] = useState();
 
     useEffect(() => {
         if(window.location.port != "80" && window.location.port != "443") {
-            setBaseUrl(`${window.location.protocol}//${window.location.hostname}:${window.location.port}`);
+            setBaseUrl(`${window.location.protocol}/${window.location.hostname}:${window.location.port}`);
+
+            Axios.get(`${apiConfig().apiBaseUrl}/info`).then((res) => {
+                setApiInfo(res.data);
+            }).catch((err) => {
+                console.log(err);
+            });
+
+
         } else {
-            setBaseUrl(`${window.location.protocol}//${window.location.hostname}`);
+            setBaseUrl(`${window.location.protocol}/${window.location.hostname}`);
         }
     }, []);
 
@@ -33,6 +42,7 @@ const Footer = () => {
                          <div className="text-slate-500">by rapaygo LLC</div>
                          <div>The fun and simple way to use Stable Diffusion AI to create, 
                              share and sell NFTs on the XRPL blockchain.</div>
+                        {apiInfo ? <div className="text-slate-500">API Version: {apiInfo.version}</div>:<div className="text-red-600">API NOT CONNECTED</div>}
                      </div>
                     <div className="mb-6">
                              <h5 className="mb-2.5 font-heading uppercase text-slate-300">Links</h5>

@@ -5,7 +5,18 @@ import MintNftModal from "./MintNftModal";
 
 import { apiConfig } from "../env";
 
-const AccountNfts = ({accountNfts, showJSON=false}) => {
+const AccountNfts = ({
+    xumm=null, 
+    isWebApp=false, 
+    isXApp=false,
+    accountNfts, 
+    showJSON=false}) => {
+
+
+    // MintNftModal = ({ 
+    //     xumm=null, 
+    //     isWebApp=false, 
+    //     isXApp=false}) =>
 
     function convertHexToString(
         hex,
@@ -33,11 +44,7 @@ const AccountNfts = ({accountNfts, showJSON=false}) => {
              <div className="flex flex-col">                
                 <div className="flex flex-row text-heading text-2xl justify-between">
                     <div>NFTs ({accountNfts.result.account_nfts.length})</div>
-                    {/* <div className="btn-common bg-slate-700 text-white hover:bg-slate-600 text-sm"
-                    onClick={()=>{}}>               
-                        <span>Mint NFT</span>
-                    </div> */}
-                    <MintNftModal/>
+                    <MintNftModal xumm={xumm} isWebApp={isWebApp} isXApp={isXApp}/>
                 </div>
                 {showJSON && <div className="flex flex-row">
                     <code className="w-full"><pre>{JSON.stringify(accountNfts,null,2)}</pre></code>

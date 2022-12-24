@@ -39,7 +39,10 @@ function ImageRefresher({imageOrigin, className}) {
   return <img className={className} src={imageSrc} alt="image" />;
 }
 
-const MintNftModal = () => {
+const MintNftModal = ({ 
+  xumm=null, 
+  isWebApp=false, 
+  isXApp=false}) => {
 
   const [showModal, setShowModal] = useState(false);
 
@@ -72,13 +75,15 @@ const MintNftModal = () => {
 
   const payToGenerateImage = async (event) => {
     setStage(-1);
-    PayloadService.getPayment(formState.prompt).then((res) => {
-    
-      console.log(res.data);
+    console.log('payToGenerateImage Formstate', formState);
+
+    PayloadService.getPayment(formState.prompt).then((res) => {  
+      console.log("payment response", res.data);
       setStage(1);
       setPayment(res.data);
       setModalTitle('Use xumm wallet to sign the payment transaction');
-      const client = new W3CWebSocket(res.data.refs.websocket_status)
+
+      const client = new W3CWebSocket(res.data.refs.websocket_status);
 
       client.onopen = () => {
         console.log('WebSocket Client Connected');
@@ -110,15 +115,129 @@ const MintNftModal = () => {
             console.log(err);
             setError(err);
           });
-        };
-      };
+        };      
+        setWsclient(client);
+      }
 
-      setWsclient(client);
+      if (xumm && isXApp) {
+        xumm.xapp.openSignRequest({ uuid: res.data.uuid });
+      } 
 
     }).catch((err) => {
       console.log(err);
       setError(err);
     });
+
+
+
+      // if (xumm && isXApp) {
+      //   xumm.environment?.jwt.then((res) => {
+      //       console.log("xumm environment jwt", res);
+
+      //       PayloadService.getPayment(formState.prompt).then((res) => {  
+      //         console.log("payment response", res.data);
+      //         setStage(1);
+      //         setPayment(res.data);
+      //         setModalTitle('Use xumm wallet to sign the payment transaction');
+        
+      //         const client = new W3CWebSocket(res.data.refs.websocket_status);
+        
+      //         client.onopen = () => {
+      //           console.log('WebSocket Client Connected');
+      //         };
+      
+      //         client.onclose = () => {
+      //           console.log('WebSocket Client Closed');
+      //         };
+      
+      //         client.onmessage = (message) => {
+      //           const dataFromServer = JSON.parse(message.data);
+      
+      //           let keys = Object.keys(dataFromServer);
+      //           if (
+      //             keys.includes('payload_uuidv4') && 
+      //             keys.includes('signed') && 
+      //             dataFromServer.signed === true
+      //           ){
+      //             setStage(-1);
+      //             setModalTitle(`Payment signed, generating image (${remaining+1} remaining)`);
+      //             PayloadService.postGenerate(dataFromServer.payload_uuidv4).then((res) => {
+      //               console.log(res.data);
+      //               setGenerateURL(res.data.img_src);
+      //               setDataFromServer(dataFromServer);
+      //               client.close();
+      //               setStage(2);
+      //               setModalTitle(`Select this image or generate another one (${remaining} remaining)`);
+      //             }).catch((err) => {
+      //               console.log(err);
+      //               setError(err);
+      //             });
+      //           };      
+      //           setWsclient(client);
+      //         }
+
+      //         if (xumm && isXApp) {
+      //           xumm.xapp.openSignRequest({ uuid: res.data.uuid });
+      //         } 
+        
+      //       }).catch((err) => {
+      //         console.log(err);
+      //         setError(err);
+      //       });
+
+      //   });
+      // } else {
+      //   PayloadService.getPayment(formState.prompt).then((res) => {
+    
+      //   console.log("payment response", res.data);
+      //   setStage(1);
+      //   setPayment(res.data);
+      //   setModalTitle('Use xumm wallet to sign the payment transaction');
+  
+      //   const client = new W3CWebSocket(res.data.refs.websocket_status);
+  
+      //   client.onopen = () => {
+      //     console.log('WebSocket Client Connected');
+      //   };
+
+      //   client.onclose = () => {
+      //     console.log('WebSocket Client Closed');
+      //   };
+
+      //   client.onmessage = (message) => {
+      //     const dataFromServer = JSON.parse(message.data);
+
+      //     let keys = Object.keys(dataFromServer);
+      //     if (
+      //       keys.includes('payload_uuidv4') && 
+      //       keys.includes('signed') && 
+      //       dataFromServer.signed === true
+      //     ){
+      //       setStage(-1);
+      //       setModalTitle(`Payment signed, generating image (${remaining+1} remaining)`);
+      //       PayloadService.postGenerate(dataFromServer.payload_uuidv4).then((res) => {
+      //         console.log(res.data);
+      //         setGenerateURL(res.data.img_src);
+      //         setDataFromServer(dataFromServer);
+      //         client.close();
+      //         setStage(2);
+      //         setModalTitle(`Select this image or generate another one (${remaining} remaining)`);
+      //       }).catch((err) => {
+      //         console.log(err);
+      //         setError(err);
+      //       });
+      //     };
+      //   };
+
+      //   setWsclient(client);
+  
+      //   }).catch((err) => {
+      //     console.log(err);
+      //     setError(err);
+      //   });
+      // }
+
+
   }
 
   const handleGenerate = async (event) => {
@@ -152,7 +271,7 @@ const MintNftModal = () => {
       setMintTx(res.data);
       setModalTitle("Use xumm to sign the mint transaction");
 
-      const client = new W3CWebSocket(res.data.refs.websocket_status)
+      const client = new W3CWebSocket(res.data.refs.websocket_status);
 
       client.onopen = () => {
         console.log('WebSocket Client Connected');
@@ -186,6 +305,10 @@ const MintNftModal = () => {
       };
 
       setWsclient(client);
+        
+      if (xumm && isXApp) {
+        xumm.xapp.openSignRequest({ uuid: res.data.uuid });
+      } 
 
     }).catch((err) => {
       console.log(err);
@@ -202,7 +325,7 @@ const MintNftModal = () => {
       {showModal ? (
         <>
           <div className="flex justify-center items-center overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
-            <div className="relative w-auto my-6 mx-auto max-w-3xl bg-slate-600 rounded-lg shadow-lg">
+            <div className="relative w-3/4 my-6 mx-auto max-w-4xl bg-slate-600 rounded-lg shadow-lg">
               <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full outline-none focus:outline-none">
                 <div className="flex items-start justify-between p-5 border-b border-solid marker:rounded-t ">
                   <h3 className="text-3xl font-heading break-words w-96">{modalTitle}</h3>
@@ -232,7 +355,8 @@ const MintNftModal = () => {
                     ></textarea>}
 
                     {stage === 1 && payment && <div className="flex flex-row w-full justify-center">
-                      <img className="w-96 h-96 rounded" src={payment.refs.qr_png} alt="qr_code" />
+                      {payment.refs && payment.refs.qr_png &&
+                        <img className="w-96 h-96 rounded" src={payment.refs.qr_png} alt="qr_code" />}                   
                     </div>}
                     {stage === 2 && payment && generateURL && <div className="flex flex-row w-full justify-center">
                       <ImageRefresher className="w-96 h-96 rounded" imageOrigin={generateURL} alt="generated_image" />
@@ -270,11 +394,7 @@ const MintNftModal = () => {
                       type="button"
                       onClick={(e) => handleMintNft(e)}
                       >Mint This Image</button>
-
-
                   </div>}
-
-
                 </div>
               </div>
             </div>
