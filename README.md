@@ -32,11 +32,16 @@ def verify_jwt(jwt_token, jwks=None, kid="default"):
     public_keys = {}
     for jwk in jwks['keys']:
         kid = jwk['kid']
-        public_keys[kid] = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(jwk))
+        public_keys[kid] = 
+        jwt.algorithms.RSAAlgorithm.from_jwk(
+            json.dumps(jwk))
         
     key = public_keys[kid]
     logger.info(f"=== kid {kid} {public_keys} {key}")
-    payload = jwt.decode(jwt_token, key, algorithms=['RS256'], audience=jwt_body['aud'], issuer='https://oauth2.xumm.app')
+    payload = jwt.decode(jwt_token, key, 
+        algorithms=['RS256'], audience=jwt_body['aud'],
+        issuer='https://oauth2.xumm.app')
+    
     logger.info(f"=== payload {payload} VERIFIED")
 
 ```
