@@ -9,7 +9,7 @@ from http import HTTPStatus
 from fastapi import APIRouter
 from fastapi import Depends, FastAPI, HTTPException, Request, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi.responses import JSONResponse, Response, FileResponse, StreamingResponse
+from fastapi.responses import JSONResponse, Response, FileResponse, StreamingResponse, RedirectResponse
 
 import logging
 
@@ -36,6 +36,8 @@ from api.xrplutils import XrpNetwork, get_xrp_network_from_jwt, xrpToDrops
 
 # === logging
 import logging
+
+from api.xummutils import get_xapp_tokeninfo
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("uvicorn.error")
 
@@ -132,7 +134,7 @@ async def post_payment(
     )
 
     tx_xrpl = payment_tx.to_xrpl()
-    logger.info(f"=== payment_tx {tx_xrpl}")
+    
 
     create_payload = {
         'txjson': tx_xrpl,
@@ -142,10 +144,17 @@ async def post_payment(
             "instruction": "Please sign this transaction to pay for your NFT"
         }
     }   
+
+    if generateImage.user_token:
+        create_payload['user_token'] = generateImage.user_token
+
+    logger.info(f"=== full payment payload {create_payload}")
      
     xumm_payload = xumm_sdk.payload.create(create_payload)
+    logger.info(f"=== payload response {json.dumps(xumm_payload.to_dict(),indent=4)}")
 
     return JSONResponse(status_code=HTTPStatus.OK, content=xumm_payload.to_dict())
+
 
 @router.post("/payload/generate")
 @verify_xumm_jwt
@@ -269,12 +278,31 @@ async def post_mint_nft(
 
         return JSONResponse(status_code=HTTPStatus.OK, content=xumm_payload.to_dict())
 
-    else:
-        return JSONResponse(status_code=HTTPStatus.NOT_ACCEPTABLE, content={"message": "payload has not been signed"})
 
+# xumm endpoints
+# /xumm/xapp?xAppStyle=LIGHT&xAppToken=1ed288a5-b858-42ab-b8e6-ba9fd8e1b59d
+@router.get("/xumm/xapp")
+async def get_xumm_app(
+    xAppStyle: str,
+    xAppToken: str,
+    request: Request):
+    logger.info(f"=== xumm app {xAppStyle} {xAppToken}")
+
+    xapp_session = await get_xapp_tokeninfo(xAppToken)
+    if xapp_session is None:
+        return JSONResponse(status_code=HTTPStatus.UNAUTHORIZED, content={"xAppToken": "cannot create payload"})
+
+    logger.info(f"==== xapp_session a: {xapp_session}") 
+
+    return RedirectResponse(f'https://niftyx.net/xapp?xAppToken={xAppToken}')
+
+
+
+    
 
 
 # ============== functions ==============
+
 def serve_pil_image(pil_img, type='PNG', mimetype='image/png'):
     img_io = io.BytesIO()
     pil_img.save(img_io, type, quality=70)

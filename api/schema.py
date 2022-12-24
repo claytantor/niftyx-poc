@@ -7,6 +7,7 @@ class MintNft(BaseModel):
 
 class ImagePayment(BaseModel):
     prompt: str
+    user_token: Optional[str]
 
 class GenerateImage(BaseModel):
     payload_uuidv4: str
