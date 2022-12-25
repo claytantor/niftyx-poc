@@ -297,7 +297,14 @@ async def get_xumm_app(
     return RedirectResponse(f'https://niftyx.net/xapp?xAppToken={xAppToken}')
 
 
+# /xumm/webhook
+@router.post("/xumm/webhook")
+async def xumm_webhook(request: Request):
 
+    json_body = await request.json()
+    logger.info(f"==== webhook: {json_body}") 
+
+    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "webhook received"})
     
 
 

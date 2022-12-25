@@ -17,7 +17,7 @@ const AccountInfo = ({accountInfo, showJSON=false}) => {
                 return <div className="flex">No account data</div>;
             } else {
                 return keys.map((key, index) => (
-                    <div className="flex flex-col w-32 h-32 text-yellow-200 bg-slate-800 m-1 rounded p-1 break-words" key={index}>
+                    <div className="flex flex-col w-32 h-16 md:h-32 text-yellow-200 bg-slate-800 m-1 rounded p-1 break-words" key={index}>
                         <div className="text-xs font-bold text-gray-500">{key}</div> 
                         <div className="font-mono font-bold text-lg">{accountInfo.result.account_data[key]}</div>
                     </div>

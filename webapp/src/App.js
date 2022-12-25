@@ -1,12 +1,15 @@
 import React, {useEffect, useState } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Axios from 'axios';
 
 import { XummAuthService } from "./service/XummAuthService";
 
-import { XummApp } from "./pages/XummApp";
 import { Home } from "./pages/Home";
 
 import "./styles.css";
+
+const xumm = XummAuthService.getXumm();
+
 
 export function App() {
 
@@ -16,66 +19,123 @@ export function App() {
      */
 
     const [isAuthorized, setIsAuthorized] = useState(null);
-    const [xumm, setXumm] = useState(null);
     const [isWebApp, setIsWebApp] = useState(false);
     const [isXApp, setIsXApp] = useState(false);
+    const [openid, setOpenid] = useState(null);
+    const [bearer, setBearer] = useState(null);
+    const [ott, setOtt] = useState(null);
 
     useEffect(() => {
-        XummAuthService.getXummSDK().then((xummSdk) => {   
-            if(xummSdk !== null) {
+        console.log("App.js useEffect");
+        
+        if(!xumm) return;
+        console.log("App.js xumm", xumm);
+
+        xumm.then((xummSdk) => {
+            if (xummSdk.runtime.xapp) setIsXApp(true);
+            if (xummSdk.runtime.browser && !xummSdk.runtime.xapp) setIsWebApp(true);
+            xummSdk.environment.ott?.then(r => setOtt(r));
+            xummSdk.environment.openid?.then((r) => {
+                setOpenid(r);
+                console.log('openid', r);
                 setIsAuthorized(true);
-                setXumm(xummSdk);
-            }
+            });
+            xummSdk.environment.bearer?.then(r => {
+                setBearer(r)
+                console.log('bearer', r);
+                Axios.defaults.headers.common['Authorization'] = `Bearer ${r}`;
+            });
         });
-    }, []);
 
-    useEffect(() => {
-        if(xumm) {
-            if (xumm.runtime.xapp) setIsXApp(true);
-            if (xumm.runtime.browser && !xumm.runtime.xapp) setIsWebApp(true);
-        }
     }, [xumm]);
 
+
+    const login = (e) => {
+        e.preventDefault();
+        console.log('login');
+        if(!xumm) return;
+        console.log("App.js xumm", xumm);
+        xumm.then((xummSDK) => {
+            xummSDK.authorize().then((res) => { 
+                console.log("authorized", res);   
+                xumm.environment.jwt?.then(r => console.log('jwt', r));
+                setIsAuthorized(true);
+            }).catch ((err) => {
+                console.log("error with auth", err);
+            });
+        });
+    }
+
+    const logout = (e) => {
+        e.preventDefault();
+        console.log("logout");
+        if(!xumm) return;
+        console.log("App.js xumm", xumm);
+
+        xumm.then((xummSDK) => {
+            xummSDK.logout();
+            setIsAuthorized(false);
+        });
+        
+    };
+
     useEffect(() => {
-        if(xumm){
-            xumm.on("error", (error) => {
-                console.log("error", error)
-            })
-    
-            xumm.on("success", async () => {
-            console.log('success', await xumm.user.account)
-            })
-    
-            xumm.on("retrieved", async () => {
-                console.log("Retrieved: from localStorage or mobile browser redirect", await xumm.user.account)
-            })
+        if(xumm && isWebApp){
+            xumm.then((xummSDK) => {
+                console.log("web runtime", isWebApp);
+                xummSDK.on("error", (error) => {
+                    console.log("error", error)
+                })
+        
+                xummSDK.on("success", async () => {
+                    console.log('success', await xummSDK.user.account)
+                })
+        
+                xummSDK.on("retrieved", async () => {
+                    console.log("Retrieved: from localStorage or mobile browser redirect", await xummSDK.user.account)
+                })
+            });
         }
 
     }, [isWebApp]);
 
     useEffect(() => {
         if(xumm && isXApp){
-            xumm.xapp.on('destination', data => {
-                console.log('xapp-destination@' + data.destination?.name, data.destination?.address, data?.reason)
-            })
+            xumm.then((xummSDK) => {
+                console.log("xumm runtime", isXApp);
+                xummSDK.xapp.on('destination', data => {
+                    console.log('xapp-destination@' + data.destination?.name, data.destination?.address, data?.reason)
+                });
+        });
         }
     }, [isXApp]);
 
 
-
     return (
         <>
+        {/* <div>
+            {xummSDK && !isAuthorized && <div onClick={()=>login(xummSDK)}>auth</div>}
+            {xummSDK && isAuthorized && <div onClick={()=>logout(xummSDK)}>logout</div>}       
+        </div> */}
         <BrowserRouter>
             <Routes>
+                {/* <Route path="/foo" element={<Foo />} /> */}
                 <Route path="/xapp" element={<Home 
-                    xumm={xumm} isWebApp={isWebApp} isXApp={isXApp} isAuthorized={isAuthorized} setIsAuthorized={setIsAuthorized} setXumm={setXumm}/>} />  
+                    xumm={xumm}
+                    isWebApp={isWebApp} 
+                    isXApp={isXApp}
+                    isAuthorized={isAuthorized}
+                    login={login}
+                    logout={logout}/>} />  
                 <Route path="/" element={<Home 
-                    xumm={xumm} isWebApp={isWebApp} isXApp={isXApp} isAuthorized={isAuthorized} setIsAuthorized={setIsAuthorized} setXumm={setXumm} />} />
+                    xumm={xumm}
+                    isWebApp={isWebApp} 
+                    isXApp={isXApp}
+                    isAuthorized={isAuthorized}
+                    login={login}
+                    logout={logout}/>} />
             </Routes>
         </BrowserRouter>
         </>
-
-
-
     );
 }

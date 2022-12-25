@@ -1,30 +1,21 @@
 import React from "react"
-import lodash from "lodash"
 import { Buffer } from "buffer";
 import MintNftModal from "./MintNftModal";
 
 import { apiConfig } from "../env";
 
 const AccountNfts = ({
-    xumm=null, 
+    xumm=null,
     isWebApp=false, 
     isXApp=false,
     accountNfts, 
     showJSON=false}) => {
 
-
-    // MintNftModal = ({ 
-    //     xumm=null, 
-    //     isWebApp=false, 
-    //     isXApp=false}) =>
-
     function convertHexToString(
         hex,
         encoding = 'utf8',
       ) {
-        // console.log('apiConfig', apiConfig);
         const baseUri = Buffer.from(hex, 'hex').toString(encoding).replace('ipfs://', apiConfig().pinataGateway+"/");
-        // console.log('baseUri', baseUri);
         return baseUri;
       }
       

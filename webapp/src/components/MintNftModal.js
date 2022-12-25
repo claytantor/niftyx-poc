@@ -40,7 +40,7 @@ function ImageRefresher({imageOrigin, className}) {
 }
 
 const MintNftModal = ({ 
-  xumm=null, 
+  xumm=null,
   isWebApp=false, 
   isXApp=false}) => {
 
@@ -56,6 +56,14 @@ const MintNftModal = ({
   const [dataFromServer, setDataFromServer] = useState(null);
   const [modalTitle, setModalTitle] = useState('Choose a prompt and pay to generate an image');
   const [remaining, setRemaining] = useState(3);
+  const [isMobile, setIsMobile] = useState(false);
+
+
+  useEffect(() => {
+    if (/Mobi/.test(navigator.userAgent)) {
+      setIsMobile(true);
+    }
+  }, []);
 
   const handleInputChange = event => {
     const target = event.target
@@ -72,6 +80,12 @@ const MintNftModal = ({
       [name]: value
     }));  
   };  
+  
+  const handleSign = async (uuid) => {
+    if (isWebApp && isMobile) {
+      window.location.href = `https://xumm.app/sign/${uuid}`;
+    } 
+  };
 
   const payToGenerateImage = async (event) => {
     setStage(-1);
@@ -120,7 +134,9 @@ const MintNftModal = ({
       }
 
       if (xumm && isXApp) {
-        xumm.xapp.openSignRequest({ uuid: res.data.uuid });
+        xumm.then((xummSDK) => {
+          xummSDK.xapp.openSignRequest({ uuid: res.data.uuid });
+        });      
       } 
 
     }).catch((err) => {
@@ -190,6 +206,7 @@ const MintNftModal = ({
           setShowModal(false);
           console.log('Minted NFT');
           client.close();
+          console.log("RELOAD 3");
           window.location.reload();
         };
       };
@@ -197,7 +214,9 @@ const MintNftModal = ({
       setWsclient(client);
         
       if (xumm && isXApp) {
-        xumm.xapp.openSignRequest({ uuid: res.data.uuid });
+        xumm.then((xummSDK) => {
+          xummSDK.xapp.openSignRequest({ uuid: res.data.uuid });
+        });    
       } 
 
     }).catch((err) => {
@@ -210,13 +229,13 @@ const MintNftModal = ({
     <>
       <div className="btn-common bg-slate-700 text-white hover:bg-slate-600 text-sm"
         onClick={()=>setShowModal(!showModal)}>               
-            <span>Mint NFT</span>
+            <span className='text-lg'>Mint NFT</span>
         </div>
       {showModal ? (
         <>
           <div className="flex justify-center items-center overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
-            <div className="relative w-3/4 my-6 mx-auto max-w-4xl bg-slate-600 rounded-lg shadow-lg">
-              <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full outline-none focus:outline-none">
+            <div className="nft-modal bg-opacity-50 relative my-6 h-full w-full bg-black rounded-lg shadow-lg flex justify-center">
+              <div className="h-full m-6 md:w-3/4 bg-opacity-100 bg-slate-600 border-0 rounded-lg shadow-lg relative flex flex-col w-full outline-none focus:outline-none">
                 <div className="flex items-start justify-between p-5 border-b border-solid marker:rounded-t ">
                   <h3 className="text-3xl font-heading break-words w-96">{modalTitle}</h3>
                 </div>
@@ -246,31 +265,37 @@ const MintNftModal = ({
 
                     {stage === 1 && payment && <div className="flex flex-row w-full justify-center">
                       {payment.refs && payment.refs.qr_png &&
-                        <img className="w-96 h-96 rounded" src={payment.refs.qr_png} alt="qr_code" />}                   
+                        <img className="w-96 rounded" src={payment.refs.qr_png} alt="qr_code" />}                   
                     </div>}
                     {stage === 2 && payment && generateURL && <div className="flex flex-row w-full justify-center">
-                      <ImageRefresher className="w-96 h-96 rounded" imageOrigin={generateURL} alt="generated_image" />
+                      <ImageRefresher className="w-96 rounded" imageOrigin={generateURL} alt="generated_image" />
                     </div>}
                     {stage === 3 && payment && <div className="flex flex-row w-full justify-center">
-                      <img className="w-96 h-96 rounded" src={mintTx.refs.qr_png} alt="qr_code" />
+                      <img className="w-96 rounded" src={mintTx.refs.qr_png} alt="qr_code" />
                     </div>}
 
                   </div>
 
                 </div>
-                <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b">
+                <div className="flex items-center justify-end p-6 border-t border-solid border-gray-800 bg-slate-600 rounded-b">
                   <button
-                    className="text-yellow-200 background-transparent font-bold uppercase px-6 py-2 text-sm outline-none focus:outline-none mr-1 mb-1"
+                    className="text-yellow-200 btn-common bg-slate-700 hover:bg-slate-500 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1"
                     type="button"
                     onClick={() => setShowModal(false)}
                   >
                     Cancel
                   </button>
                   {stage === 0 && <button
-                    className="btn-common bg-slate-700 text-white hover:bg-slate-500 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1"
+                    className="btn-common bg-green-700 text-white hover:bg-slate-500 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1"
                     type="button"
                     onClick={(e) => payToGenerateImage(e)}
                   >Pay To Generate</button>}
+
+                  {stage === 1 && isMobile && <button
+                    className="btn-common bg-green-700 text-white hover:bg-slate-500 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1"
+                    type="button"
+                    onClick={(e) => handleSign(payment.uuid)}
+                  >SIGN WITH XUMM</button>}
 
                   {stage === 2 && 
                   <div className='flex flex-row'>
@@ -279,12 +304,19 @@ const MintNftModal = ({
                       type="button"
                       onClick={(e) => handleGenerate(e)}
                       >Try Again</button>}
+      
                     <button
                       className="btn-common bg-green-700 text-white hover:bg-slate-500 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1"
                       type="button"
                       onClick={(e) => handleMintNft(e)}
                       >Mint This Image</button>
                   </div>}
+
+                  {stage === 3 && isMobile && <button
+                    className="btn-common bg-green-700 text-white hover:bg-slate-500 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1"
+                    type="button"
+                    onClick={(e) => handleSign(mintTx.uuid)}
+                  >SIGN WITH XUMM</button>}
                 </div>
               </div>
             </div>
