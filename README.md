@@ -149,6 +149,8 @@ xumm.then((xummSDK) => {
 
 Then client can then use the websocket to monitor the status of the transaction.
 
+In the example below the API is getting called to create a payment payload on the backend (instead of in the browser) because some backend orchestration needs to be done at time of payment. *This* is what makes this application "hybrid" becuase payloads are being generated both using the xumm SDK on the front and backends, all protected by the xumm JWT.
+
 ```javascript
 PayloadService.getPayment(formState.prompt).then((res) => {  
     console.log("payment response", res.data);
@@ -193,7 +195,9 @@ PayloadService.getPayment(formState.prompt).then((res) => {
     }
 
     if (xumm && isXApp) {
-        xumm.xapp.openSignRequest({ uuid: res.data.uuid });
+    	xumm.then((xummSDK) => {
+        	xummSDK.xapp.openSignRequest({ uuid: res.data.uuid });
+	}
     } 
 
 }).catch((err) => {
