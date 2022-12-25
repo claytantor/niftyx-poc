@@ -8,6 +8,15 @@ import { Home } from "./pages/Home";
 
 import "./styles.css";
 
+
+/**
+ * IMPORTANT!
+ * this is the Xumm SDK, its super important that you
+ * you create this as a global top level reference.
+ * Creating this within a component will cause the
+ * component to re-render every time the state changes
+ * and breaks the sdk
+ */
 const xumm = XummAuthService.getXumm();
 
 
