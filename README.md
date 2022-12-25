@@ -64,8 +64,8 @@ The code to manage the state is in these places:
 * getXumm - returns the xumm SDK based by checking at local storage, usually used for the Browser mode. If no token is found, it will return a null, telling the app to login.
 * setBearer (token) - sets the token in Axios for authorization to the backend.
 
-### Global Xumm SDK
-If you are using ReactJS, you should use the global xumm SDK to access the xumm SDK. This is the recommended way to access the xumm app because instantiating the SDK in the scope of the component can cause SDK sate issues.
+### Global Xumm SDK and Promise Based SDK
+If you are using ReactJS, you should use the global a `Xumm` instance to access the xumm SDK via a promise. This is the recommended way to access the xumm app because instantiating the SDK in the scope of the component can cause SDK sate issues.
 
 ```javascript
 /**
@@ -79,7 +79,6 @@ If you are using ReactJS, you should use the global xumm SDK to access the xumm 
 const xumm = XummAuthService.getXumm();
 ```
 
-### Promise Based Access to SDK
 The xumm SDK is a promise based SDK, so you need to use the `then` method to get the SDK.
 
 ```javascript
